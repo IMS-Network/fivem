@@ -13,7 +13,7 @@
     <PackageReference Include="Lib.AspNetCore.ServerSentEvents" Version="5.0.0" />
     <PackageReference Include="MaxMind.GeoIP2" Version="5.40.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection.Extensions" Version="5.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.Extensions" Version="6.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="5.0.14" />
     <PackageReference Include="Microsoft.AspNetCore.Session" Version="2.2.0" />
     <PackageReference Include="Microsoft.CSharp" Version="6.0.21" />
@@ -21,7 +21,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.7" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
     <PackageReference Include="Microsoft.NET.Sdk.Razor" Version="5.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="SharpCompress" Version="0.30.0" />
