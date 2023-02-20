@@ -11,7 +11,7 @@
     "build:server": "webpack --config config/webpack.backend.config.js --mode=production"
   },
   "dependencies": {
-    "@fontsource/montserrat": "^4.5.0",
+    "@fontsource/montserrat": "^4.5.14",
     "@fontsource/rubik": "^4.5.0",
     "@fontsource/source-code-pro": "^4.5.0",
     "@octokit/rest": "^18.3.0",
