@@ -16,7 +16,7 @@
     "@radix-ui/react-select": "^1.2.0",
     "@sentry/react": "^7.34.0",
     "@sentry/tracing": "^7.34.0",
-    "adaptivecards": "^2.10.0",
+    "adaptivecards": "^2.11.1",
     "autolinker": "^3.16.1",
     "blurhash": "^1.1.5",
     "color": "^4.2.1",
