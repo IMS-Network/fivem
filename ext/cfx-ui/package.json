@@ -9,7 +9,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@fontsource/montserrat": "^4.5.12",
+    "@fontsource/montserrat": "^4.5.14",
     "@fontsource/rubik": "^4.5.11",
     "@sentry/react": "^7.14.0",
     "@sentry/tracing": "^7.14.0",
