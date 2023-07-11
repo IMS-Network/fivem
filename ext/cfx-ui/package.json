@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@fontsource/montserrat": "^4.5.14",
-    "@fontsource/rubik": "^4.5.11",
+    "@fontsource/rubik": "^4.5.14",
     "@sentry/react": "^7.14.0",
     "@sentry/tracing": "^7.14.0",
     "@radix-ui/react-select": "^1.2.0",
