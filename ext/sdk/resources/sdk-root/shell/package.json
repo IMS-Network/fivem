@@ -40,7 +40,7 @@
     "minimatch": "^3.0.5",
     "mkdirp": "^1.0.4",
     "mobx": "^6.7.0",
-    "mobx-react-lite": "^3.2.0",
+    "mobx-react-lite": "^3.4.3",
     "node-fetch": "^2.6.7",
     "overlayscrollbars": "^1.13.1",
     "overlayscrollbars-react": "^0.2.3",
