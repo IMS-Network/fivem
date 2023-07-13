@@ -230,19 +230,6 @@ void NetLibraryResourcesComponent::UpdateOneResource()
 
 void NetLibraryResourcesComponent::UpdateResources(const std::string& updateList, const std::function<void()>& doneCb)
 {
-	// initialize mounter if needed
-	{
-		static fwRefContainer<fx::CachedResourceMounter> mounter = ([]()
-		{
-			fx::ResourceManager* manager = Instance<fx::ResourceManager>::Get();
-			fwRefContainer mounter = fx::GetCachedResourceMounter(manager, "rescache:/");
-
-			manager->AddMounter(mounter);
-
-			return mounter;
-		})();
-	}
-
 	NetAddress address = g_netAddress;
 
 	// fetch configuration
@@ -882,7 +869,7 @@ void NetLibraryResourcesComponent::AttachToObject(NetLibrary* netLibrary)
 	},
 	INT32_MAX);
 
-	console::GetDefaultContext()->GetCommandManager()->FallbackEvent.Connect([netLibrary](const std::string& cmd, const ProgramArguments& args, const std::any& context)
+	console::GetDefaultContext()->GetCommandManager()->FallbackEvent.Connect([netLibrary](const std::string& cmd, const ProgramArguments& args, const std::string& context)
 	{
 		if (netLibrary->GetConnectionState() != NetLibrary::CS_ACTIVE)
 		{
@@ -894,6 +881,7 @@ void NetLibraryResourcesComponent::AttachToObject(NetLibrary* netLibrary)
 		net::Buffer buffer;
 		buffer.Write<uint16_t>(s.size());
 		buffer.Write(s.c_str(), std::min(s.size(), static_cast<size_t>(INT16_MAX)));
+		buffer.Write<uint32_t>(HashString(context.c_str()));
 
 		netLibrary->SendReliableCommand("msgServerCommand", reinterpret_cast<const char*>(buffer.GetBuffer()), buffer.GetCurOffset());
 
@@ -916,6 +904,8 @@ static InitFunction initFunction([]()
 {
 	fx::ResourceManager::OnInitializeInstance.Connect([](fx::ResourceManager* manager)
 	{
+		manager->AddMounter(fx::GetCachedResourceMounter(manager, "rescache:/"));
+
 		manager->SetComponent(fx::EventReassemblyComponent::Create());
 
 		manager->GetComponent<fx::EventReassemblyComponent>()->SetSink(&g_eventSink);

@@ -24,6 +24,7 @@
 #include <ICoreGameInit.h>
 
 #include <CrossBuildRuntime.h>
+#include "CnlEndpoint.h"
 
 using json = nlohmann::json;
 
@@ -160,7 +161,7 @@ std::string GetEntitlementBlock(uint64_t accountId, const std::string& machineHa
 	if (!success)
 	{
 		auto r = cpr::Post(
-			cpr::Url{ "https://lambda.fivem.net/api/validate/entitlement" },
+			cpr::Url{ CNL_ENDPOINT "api/validate/entitlement" },
 			cpr::Payload{
 				{ "entitlementId", g_entitlementSource },
 				{ "machineHash", machineHash },
@@ -747,13 +748,13 @@ mapper->AddGameService("ugc.asmx/Publish", [](const std::string& body)
 <?xml version="1.0" encoding="utf-8"?>
 <Response xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ms="0" xmlns="GetBuildManifestFull">
   <Status>1</Status>
-  <Result BuildId="86" VersionNumber="1.0.1491.17" BuildDateUtc="2019-11-05T11:39:37.0266667">
+  <Result BuildId="87" VersionNumber="1.0.1491.18" BuildDateUtc="2019-11-05T11:39:37.0266667">
     <FileManifest>
-		<FileDetails FileEntryId="9178" FileEntryVersionId="9648" FileSize="89139544" TimestampUtc="2019-11-05T11:39:34.8800000">
+		<FileDetails FileEntryId="9178" FileEntryVersionId="9648" FileSize="89004016" TimestampUtc="2019-11-05T11:39:34.8800000">
 			<RelativePath>RDR2.exe</RelativePath>
-			<SHA256Hash>338c9ba3f3628a98e9295fb53e522e23f9f7ba77be1e27213475c7b7ec3bf306</SHA256Hash>
+			<SHA256Hash>b950fadd7408982437549d8b926b6fb8f962c5aff483e6a2fdffaf3f07a485f9</SHA256Hash>
 			<FileChunks>
-				<Chunk FileChunkId="13046" SHA256Hash="338c9ba3f3628a98e9295fb53e522e23f9f7ba77be1e27213475c7b7ec3bf306" StartByteOffset="0" Size="89139544" />
+				<Chunk FileChunkId="13046" SHA256Hash="b950fadd7408982437549d8b926b6fb8f962c5aff483e6a2fdffaf3f07a485f9" StartByteOffset="0" Size="89004016" />
 			</FileChunks>
 		</FileDetails>
 %s
@@ -843,6 +844,26 @@ mapper->AddGameService("ugc.asmx/Publish", [](const std::string& body)
 			<SHA256Hash>7b3c0053db37eca7c6cdd0ecd268882cdd5f693f416e5a8e97fd31de66324d04</SHA256Hash>
 			<FileChunks>
 				<Chunk FileChunkId="13046" SHA256Hash="7b3c0053db37eca7c6cdd0ecd268882cdd5f693f416e5a8e97fd31de66324d04" StartByteOffset="0" Size="55559560" />
+			</FileChunks>
+		</FileDetails>
+    </FileManifest>
+    <IsPreload>false</IsPreload>
+  </Result>
+</Response>)");
+			}
+			else if (xbr::IsGameBuild<2944>())
+			{
+				return fmt::sprintf(R"(
+<?xml version="1.0" encoding="utf-8"?>
+<Response xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ms="0" xmlns="GetBuildManifestFull">
+  <Status>1</Status>
+  <Result BuildId="101" VersionNumber="1.0.2944.0" BuildDateUtc="2021-11-05T11:39:37.0266667">
+    <FileManifest>
+		<FileDetails FileEntryId="9178" FileEntryVersionId="9648" FileSize="49828848" TimestampUtc="2021-11-05T11:39:34.8800000">
+			<RelativePath>GTA5.exe</RelativePath>
+			<SHA256Hash>eb0125ab36004ccdba7bfa918dee37035fb9e23448b850256fd6141ffe194466</SHA256Hash>
+			<FileChunks>
+				<Chunk FileChunkId="13046" SHA256Hash="eb0125ab36004ccdba7bfa918dee37035fb9e23448b850256fd6141ffe194466" StartByteOffset="0" Size="49828848" />
 			</FileChunks>
 		</FileDetails>
     </FileManifest>
@@ -1083,13 +1104,14 @@ mapper->AddGameService("ugc.asmx/Publish", [](const std::string& body)
 			{ 2612, 95 },
 			{ 2699, 96 },
 			{ 2802, 98 },
+			{ 2944, 101 },
 		};
 
 		static std::map<int, int> rdrBuildsToVersions{
 			{ 1311, 79 },
 			{ 1355, 80 },
 			{ 1436, 84 },
-			{ 1491, 86 },
+			{ 1491, 87 },
 		};
 
 		return fmt::sprintf(R"(<?xml version="1.0" encoding="utf-8"?>

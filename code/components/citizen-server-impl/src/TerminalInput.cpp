@@ -202,11 +202,6 @@ static InitFunction initFunction([]()
 					{
 						auto cmd = resource->GetName();
 
-						if (cmd == "_cfx_internal")
-						{
-							return;
-						}
-
 						if (strncmp(cmd.c_str(), inputCopy.c_str(), inputCopy.length()) == 0)
 						{
 							cmds.insert(cmd);
@@ -313,6 +308,28 @@ static InitFunction initFunction([]()
 					auto flags = fcntl(0, F_GETFL);
 					flags &= ~O_NONBLOCK;
 					fcntl(0, F_SETFL, flags);
+#endif
+
+					auto historyFile = instance->GetRootPath() + "/.replxx_history";
+					rxx.history_sync(historyFile);
+
+					// mark file as hidden on Windows, too
+#ifdef _WIN32
+					{
+						HANDLE hFile = CreateFileW(ToWide(historyFile).c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+
+						if (hFile != INVALID_HANDLE_VALUE)
+						{
+							FILE_BASIC_INFO info = { 0 };
+							if (GetFileInformationByHandleEx(hFile, FileBasicInfo, &info, sizeof(info)))
+							{
+								info.FileAttributes |= FILE_ATTRIBUTE_HIDDEN;
+								SetFileInformationByHandle(hFile, FileBasicInfo, &info, sizeof(info));
+							}
+
+							CloseHandle(hFile);
+						}
+					}
 #endif
 
 					const char* result = rxx.input("cfx> ");
