@@ -629,6 +629,39 @@ bool ExtractInstallerFile(const std::wstring& installerFile, const std::string& 
 extern void TaskDialogEmulated(TASKDIALOGCONFIG* config, int* button, void*, void*);
 #endif
 
+static const char* const kByteStringsUnlocalized[] = {
+	" B",
+	" kB",
+	" MB",
+	" GB",
+	" TB",
+	" PB"
+};
+
+static std::wstring FormatBytes(int64_t bytes)
+{
+	double unit_amount = static_cast<double>(bytes);
+	size_t dimension = 0;
+	const int kKilo = 1024;
+	while (unit_amount >= kKilo && dimension < std::size(kByteStringsUnlocalized) - 1)
+	{
+		unit_amount /= kKilo;
+		dimension++;
+	}
+
+	if (bytes != 0 && dimension > 0 && unit_amount < 100)
+	{
+		return ToWide(fmt::sprintf("%.1lf%s", unit_amount,
+		kByteStringsUnlocalized[dimension]));
+	}
+	else
+	{
+		return ToWide(fmt::sprintf("%.0lf%s", unit_amount,
+		kByteStringsUnlocalized[dimension]));
+	}
+}
+
+
 static bool ShowDownloadNotification(const std::vector<std::pair<GameCacheEntry, bool>>& entries)
 {
 	// iterate over the entries
@@ -654,7 +687,7 @@ static bool ShowDownloadNotification(const std::vector<std::pair<GameCacheEntry,
 		{
 			localSize += entry.first.localSize;
 
-			detailStr << entry.first.filename << L" (local, " << va(L"%.2f", entry.first.localSize / 1024.0 / 1024.0) << L" MB)\n";
+			detailStr << entry.first.filename << L" (local, " << FormatBytes(entry.first.localSize) << L")\n";
 		}
 		else
 		{
@@ -667,7 +700,7 @@ static bool ShowDownloadNotification(const std::vector<std::pair<GameCacheEntry,
 
 			remoteSize += entry.first.remoteSize;
 
-			detailStr << entry.first.remotePath << L" (download, " << va(L"%.2f", entry.first.remoteSize / 1024.0 / 1024.0) << L" MB)\n";
+			detailStr << entry.first.remotePath << L" (download, " << FormatBytes(entry.first.remoteSize) << L")\n";
 		}
 	}
 
@@ -690,7 +723,7 @@ static bool ShowDownloadNotification(const std::vector<std::pair<GameCacheEntry,
 
 	if (shouldAllow)
 	{
-		taskDialogConfig.pszContent = va(gettext(L"The local %s game data is outdated, and needs to be updated. This will copy %.2f MB of data from the local disk, and download %.2f MB of data from the internet.\nDo you wish to continue?"), PRODUCT_NAME, (localSize / 1024.0 / 1024.0), (remoteSize / 1024.0 / 1024.0));
+		taskDialogConfig.pszContent = va(gettext(L"The local %s game data is outdated, and needs to be updated. This will copy %s of data from the local disk, and download %s of data from the internet.\nDo you wish to continue?"), PRODUCT_NAME, FormatBytes(localSize), FormatBytes(remoteSize));
 	}
 	else
 	{
@@ -1421,7 +1454,13 @@ std::map<std::string, std::string> UpdateGameCache()
 
 	// cross-build toggle
 #ifdef GTA_FIVE
-	if (IsTargetGameBuild<2802>())
+	if (IsTargetGameBuild<2944>())
+	{
+		g_requiredEntries.push_back({ "GTA5.exe", "4d968a0754d59d30b29cd7b01a06e4685a5fa49c", "https://content.cfx.re/mirrors/patches/2944.0/GTA5.exe", 49828848 });
+		g_requiredEntries.push_back({ "update/update.rpf", "abc628b0ae04e68f88e0581f3572d26dbaed84d2", "https://content.cfx.re/mirrors/patches/2944.0/update.rpf", 1087019008 });
+		g_requiredEntries.push_back({ "update/update2.rpf", "a3181d68a532950da5c584100b35f79eaca7c884", "https://content.cfx.re/mirrors/patches/2944.0/update2.rpf", 352088064 });
+	}
+	else if (IsTargetGameBuild<2802>())
 	{
 		g_requiredEntries.push_back({ "GTA5.exe", "ebb6c144c5befe3529235deccbd8f59d6ce1a76c", "https://content.cfx.re/mirrors/patches/2802.0/GTA5.exe", 46709592 });
 		g_requiredEntries.push_back({ "update/update.rpf", "66388a381347511b7b28aaf91741615e45008e8b", "https://content.cfx.re/mirrors/patches/2802.0/update.rpf", 1079308288,
@@ -1580,12 +1619,12 @@ std::map<std::string, std::string> UpdateGameCache()
 #elif IS_RDR3
 	if (IsTargetGameBuild<1491>())
 	{
-		g_requiredEntries.push_back({ "RDR2.exe", "133b875567d4af6f581f0c1d5b27c2cdf118720c", "ipfs://bafybeihfrq6wopqubortlxodzzxirpcoorl4vvh2dvwjxkozn2ykbo2c74", 89139544 });
-		g_requiredEntries.push_back({ "appdata0_update.rpf", "8f48fb43c51b07f350bae2a521cb448b60e97d0d", "ipfs://bafybeifghjgkoozupfgajcpw5222ef6qprsrubtp7isuu7vqly4fpvl6xm", 3164639 });
-		g_requiredEntries.push_back({ "shaders_x64.rpf", "35b97991e284b1560653b8b6049c6fe201f5b979", "ipfs://bafybeiekq6c3ppatvkh7rltel646uz6nr2mhamzbb2lmngjgf5hkzcny5i", 233917870 });
-		g_requiredEntries.push_back({ "update_1.rpf", "438012672868382084ea59a1225d32b96ad1b429", "ipfs://bafybeif7pjisgkl5aovgozvqbrsekzco3cmg4l5mpw7457abfi5wvz4bfm", 2833730538 });
+		g_requiredEntries.push_back({ "RDR2.exe", "25b4ccff61f7f1463bbac7dd44c0d2f28e1b458f", "ipfs://bafybeifhqpfmfqpsrwepziqufos4sahtm3og3gfe6wtr6t5teqnlpgobgm", 89004016 });
+		g_requiredEntries.push_back({ "appdata0_update.rpf", "142c6af7a64f2cae06a8f7ac7ad6ee74967afc49", "ipfs://bafybeidfbuuopknknyxudltanygngengqvdhnb6n2t6b6sewvaiwrcc7ni", 3164639 });
+		g_requiredEntries.push_back({ "shaders_x64.rpf", "f456cbaf70ff921f77279db5a901c6a6e5807e2e", "ipfs://bafybeigzpaqkutxyz3t6vckpwhgdq3id47opcfmvox7y73cyzjgdzy26km", 233917870 });
+		g_requiredEntries.push_back({ "update_1.rpf", "601a4801f739540bebb2b3e141fda022901a7bd1", "ipfs://bafybeifyys7tev4xx3fmhfenwcifapcb4hgzd75epeofgfe7fhw53tbcdm", 2833730538 });
 		g_requiredEntries.push_back({ "update_2.rpf", "6b3af948543e7a48013bdec930e8dd586be37266", "ipfs://bafybeiasydcyzhbsyj657fgmgno5evxwic5lbmtnuhchlgy4kinks5pmbe", 152038510 });
-		g_requiredEntries.push_back({ "update_3.rpf", "9ee09a8d6a93b44952cb41bba0146bd394c48dd0", "ipfs://bafybeifxlgkmi6ey6lmzryunztogetyzz5d4il72oohyuqyhilffddc5nq", 132370220 });
+		g_requiredEntries.push_back({ "update_3.rpf", "9237da54d2267435fc7d7bf0f3ec054bbeea90a9", "ipfs://bafybeibn342gwf7765nbea63ud6ewy5bqda5u5j6h5mzqivvgjwkkcamqa", 132370220 });
 		g_requiredEntries.push_back({ "update_4.rpf", "503c8de5c16e26afdce502b9aedf1ae16a0e8730", "ipfs://bafybeiagsrorxsjhtzjjbs3nbxm6flgp2wx2wxfvzbp2u6ae73hhfoso7u", 2015025315 });
 	}
 	else if (IsTargetGameBuild<1436>())

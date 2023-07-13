@@ -5,6 +5,7 @@
 
 #ifdef GTA_FIVE
 #define GAME_BUILDS \
+	(2944) \
 	(2802) \
 	(2699) \
 	(2612) \
@@ -59,7 +60,7 @@ inline std::string_view GetGameBuildIdentifier()
 #ifdef IS_RDR3
 		if (build == 1491)
 		{
-			return "1491_17";
+			return "1491_18";
 		}
 #endif
 

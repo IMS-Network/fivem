@@ -1378,8 +1378,39 @@ concurrency::task<void> NetLibrary::ConnectToServer(const std::string& rootUrl)
 											m_connectionState = CS_IDLE;
 										};
 
-										auto policySuccess = [this]()
+										auto policySuccess = [this, maxClients]()
 										{
+											// add forced policies
+											if (maxClients <= 10)
+											{
+												// development/testing servers (<= 10 clients max - see ZAP defaults) get subdir_file_mapping granted
+												policies.insert("subdir_file_mapping");
+											}
+
+											// dev server
+											if (maxClients <= 8)
+											{
+												policies.insert("local_evaluation");
+											}
+
+											// format policy string and store it
+											std::stringstream policyStr;
+
+											for (const auto& line : policies)
+											{
+												policyStr << "[" << line << "]";
+											}
+
+											std::string policy = policyStr.str();
+
+											if (!policy.empty())
+											{
+												trace("Server feature policy is %s\n", policy);
+											}
+
+											Instance<ICoreGameInit>::Get()->SetData("policy", policy);
+
+											// continue connection
 											m_connectionState = CS_INITRECEIVED;
 										};
 
@@ -1439,36 +1470,6 @@ concurrency::task<void> NetLibrary::ConnectToServer(const std::string& rootUrl)
 														trace("Policy request failed. %s\n", std::string{ data, size });
 														fact = "Requesting policy failed.";
 													}
-
-													// add forced policies
-													if (maxClients <= 10)
-													{
-														// development/testing servers (<= 10 clients max - see ZAP defaults) get subdir_file_mapping granted
-														policies.insert("subdir_file_mapping");
-													}
-
-													// dev server
-													if (maxClients <= 8)
-													{
-														policies.insert("local_evaluation");
-													}
-
-													// format policy string and store it
-													std::stringstream policyStr;
-
-													for (const auto& line : policies)
-													{
-														policyStr << "[" << line << "]";
-													}
-
-													std::string policy = policyStr.str();
-
-													if (!policy.empty())
-													{
-														trace("Server feature policy is %s\n", policy);
-													}
-
-													Instance<ICoreGameInit>::Get()->SetData("policy", policy);
 
 													// check 1s policy
 													if (Instance<ICoreGameInit>::Get()->OneSyncEnabled && !onesyncType.empty())
@@ -1808,7 +1809,7 @@ concurrency::task<void> NetLibrary::ConnectToServer(const std::string& rootUrl)
 						if ((buildRef != 0 && buildRef != xbr::GetGameBuild()) || (pureLevel != fx::client::GetPureLevel()))
 						{
 #if defined(GTA_FIVE)
-							if (buildRef != 1604 && buildRef != 2060 && buildRef != 2189 && buildRef != 2372 && buildRef != 2545 && buildRef != 2612 && buildRef != 2699 && buildRef != 2802)
+							if (buildRef != 1604 && buildRef != 2060 && buildRef != 2189 && buildRef != 2372 && buildRef != 2545 && buildRef != 2612 && buildRef != 2699 && buildRef != 2802 && buildRef != 2944)
 #else
 							if (buildRef != 1311 && buildRef != 1355 && buildRef != 1436 && buildRef != 1491)
 #endif

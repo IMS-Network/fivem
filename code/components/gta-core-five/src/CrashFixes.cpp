@@ -573,6 +573,32 @@ static int _calculateLeapFix(clockInfo* clock)
 	return g_origCalculateLeap(clock);
 }
 
+static int (*g_origGetCacheLineSize)();
+
+static int GetCacheLineSizeHook()
+{
+	auto rv = g_origGetCacheLineSize();
+
+	if (rv == 0)
+	{
+		return 64;
+	}
+
+	return rv;
+}
+
+static bool (*g_origRTTI_IsTypeOf_pgBase)(void*);
+
+static bool RTTI_IsTypeOf_pgBase(void* self)
+{
+	if (!self)
+	{
+		return true;
+	}
+
+	return g_origRTTI_IsTypeOf_pgBase(self);
+}
+
 static HookFunction hookFunction{[] ()
 {
 	// CModelInfoStreamingModule LookupModelId null return
@@ -703,9 +729,8 @@ static HookFunction hookFunction{[] ()
 			test(rcx, rcx);
 			jz("justReturn");
 
-			// 505-specific offset
-			// valid for 1032 as well
-			movzx(ebx, word_ptr[rcx + 0x668]);
+			// validated for 1604-2802
+			movzx(ebx, word_ptr[rcx + 0x690]);
 			ret();
 
 			L("justReturn");
@@ -729,9 +754,8 @@ static HookFunction hookFunction{[] ()
 			test(rax, rax);
 			jz("justReturn");
 
-			// 505-specific offset
-			// valid for 1103 as well
-			cmp(qword_ptr[rax + 0x670], 0);
+			// validated for 1604-2802
+			cmp(qword_ptr[rax + 0x698], 0);
 
 			L("justReturn");
 			ret();
@@ -1179,6 +1203,9 @@ static HookFunction hookFunction{[] ()
 	// hook to pretend any such slot is loaded
 	MH_CreateHook(hook::get_pattern("75 0D F6 84 08 ? ? 00 00", -0xB), CText__IsSlotLoadedHook, (void**)&g_origCText__IsSlotLoaded);
 
+	// cache line size can't be 0, breaks Nickel XTA
+	MH_CreateHook(hook::get_pattern("B8 01 00 00 00 0F A2 C1 EB 08", -0x11), GetCacheLineSizeHook, (void**)&g_origGetCacheLineSize);
+
 	// and to prevent unloading
 	if (!Is372())
 	{
@@ -1210,6 +1237,7 @@ static HookFunction hookFunction{[] ()
 
 	// don't fastfail from game CRT code
 	{
+		// 5 hits on 2944, but skipping 2 last
 		auto pattern = hook::pattern("B9 ? ? ? ? CD 29").count_hint(3);
 
 		for (size_t i = 0; i < pattern.size(); i++)
@@ -1219,8 +1247,8 @@ static HookFunction hookFunction{[] ()
 		}
 	}
 
-	// fix crash caused by lack of nullptr check for CWeaponInfo, introduced as a R* bug in 2545
-	if (xbr::IsGameBuildOrGreater<2545>())
+	// fix crash caused by lack of nullptr check for CWeaponInfo, introduced as a R* bug in 2545.0, fixed in 2628.2
+	if (xbr::IsGameBuildOrGreater<2545>() && !xbr::IsGameBuildOrGreater<2628>())
 	{
 		auto location = hook::get_pattern("41 81 7F 10 F3 9C CD 45");
 
@@ -1257,5 +1285,36 @@ static HookFunction hookFunction{[] ()
 		patchStub.Init(reinterpret_cast<intptr_t>(location));
 		hook::nop(location, 8);
 		hook::jump(location, patchStub.GetCode());
+	}
+
+	//
+	// Null pointer dereferencing crash fix in rage::strRequestMgr::RemoveObject. The function
+	// that is getting patched used to ensure that first argument is a type of rage::pgBase.
+	// However it also return false if a nullptr has been passed, this is why the crash is happening.
+	// The code inside if-check does expect variable to be a valid pointer. We're patching this
+	// specific RTTI type checking function call to return "true" when first argument is nullptr.
+	// This is also clear that first argument may be a nullptr given the other related code in this function.
+	//
+	if (xbr::IsGameBuildOrGreater<2802>())
+	{
+		auto location = hook::get_pattern("B9 D4 A7 C6 36 E8", -19);
+		hook::set_call(&g_origRTTI_IsTypeOf_pgBase, location);
+		hook::call(location, RTTI_IsTypeOf_pgBase);
+	}
+
+	// netBlender::addOrientationFrame()
+	// Sometime before 1604, Extra logic related to vehicles was added.
+	// This seems to cause a crash in some cases where the object is already destructed
+	if (xbr::IsGameBuildOrGreater<1604>())
+	{
+		auto location = hook::get_pattern("48 8D 54 24 30 89 81 ? 01 00 00");
+		// NOP loading Vector3 Ref into RDX for the below function
+		hook::nop(location, 5);
+		// NOP the function call that was added
+		hook::nop((char*)location + 21, 6);
+		// NOP the extra comparisons added to the if()
+		hook::nop((char*)location + 0x69, 45);
+		// Change the opcode to an unconditional JMP
+		hook::put((char*)location + 0x96, (uint8_t)0xEB);
 	}
 }};

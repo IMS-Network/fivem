@@ -77,11 +77,6 @@ namespace fx
 	{
 		fx::ClientSharedPtr client = fx::ClientSharedPtr::Construct(guid);
 		fx::ClientWeakPtr weakClient(client);
-
-		{
-			std::unique_lock writeHolder(m_clientMutex);
-			m_clients.emplace(guid, client);
-		}
 		
 		client->OnAssignNetId.Connect([this, weakClient]()
 		{
@@ -145,6 +140,11 @@ namespace fx
 		});
 
 		OnClientCreated(client);
+
+		{
+			std::unique_lock writeHolder(m_clientMutex);
+			m_clients.emplace(guid, client);
+		}
 
 		return client;
 	}
@@ -223,6 +223,7 @@ namespace fx
 			events->TriggerClientEvent("onPlayerJoining", target, client->GetNetId(), client->GetName(), bigModeSlot);
 		}
 
+		m_clientsByNetId[oldNetID].reset();
 		// trigger connection handlers
 		OnConnectedClient(client.get());
 	}
